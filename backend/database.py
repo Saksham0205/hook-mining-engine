@@ -7,24 +7,40 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from models import Base
 
 _BACKEND_DIR = Path(__file__).resolve().parent
-_db_path = os.getenv(
-    "DATABASE_URL",
-    f"sqlite+aiosqlite:///{(_BACKEND_DIR / 'hook_engine.db').as_posix()}",
+
+
+def _normalize_async_database_url(url: str) -> str:
+    """Render/Heroku use postgres://… or postgresql://…; SQLAlchemy async wants postgresql+asyncpg://…"""
+    u = url.strip()
+    if not u:
+        return u
+    if u.startswith("sqlite:///"):
+        return u.replace("sqlite:///", "sqlite+aiosqlite:///", 1)
+    scheme, sep, rest = u.partition("://")
+    if not sep:
+        return u
+    if scheme.startswith("postgresql+") and "asyncpg" in scheme:
+        return u
+    if scheme in ("postgres", "postgresql"):
+        return f"postgresql+asyncpg://{rest}"
+    return u
+
+
+_database_url = _normalize_async_database_url(
+    os.getenv("DATABASE_URL", f"sqlite+aiosqlite:///{(_BACKEND_DIR / 'hook_engine.db').as_posix()}"),
 )
-if _db_path.startswith("sqlite:///"):
-    _db_path = _db_path.replace("sqlite:///", "sqlite+aiosqlite:///", 1)
 
-connect_args = {}
 engine_kwargs = {"echo": False}
-if "+aiosqlite" in (_db_path or ""):
-    connect_args["check_same_thread"] = False
-    engine_kwargs["connect_args"] = connect_args
+if "+aiosqlite" in _database_url:
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
 
-engine = create_async_engine(_db_path, **engine_kwargs)
+engine = create_async_engine(_database_url, **engine_kwargs)
 
 
 @event.listens_for(engine.sync_engine, "connect")
 def _sqlite_pragma(dbapi_connection, _connection_record):
+    if engine.dialect.name != "sqlite":
+        return
     try:
         cur = dbapi_connection.cursor()
         cur.execute("PRAGMA foreign_keys=ON")
