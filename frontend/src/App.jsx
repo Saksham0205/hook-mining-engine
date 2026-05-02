@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { MineTab } from './components/MineTab.jsx';
 import { LibraryTab } from './components/LibraryTab.jsx';
 import { GenerateTab } from './components/GenerateTab.jsx';
@@ -103,6 +104,7 @@ export default function App({ apiBase = '' }) {
       <footer className="pixii-footer">
         Built for Pixii.ai · Powered by Groq (llama-3.3-70b-versatile)
       </footer>
+      <Analytics />
     </div>
   );
 }
