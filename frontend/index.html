@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hook Mining Engine — Pixii</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              surface: '#0f0f0f',
+              card: '#1a1a1a',
+              edge: '#2a2a2a',
+              accent: '#7F77DD',
+              success: '#5DCAA5',
+              danger: '#E87060',
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-surface text-[#e8e8e8] antialiased" style="font-family:system-ui,-apple-system,sans-serif">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
