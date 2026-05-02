@@ -12,7 +12,7 @@ const TOPICS = [
 const PLATFORMS = ['LinkedIn', 'Instagram', 'Twitter/X'];
 
 export function GenerateTab({ apiBase = '' }) {
-  const api = useApi(apiBase);
+  const { getHooks, generate } = useApi(apiBase);
   const [hooksOptions, setHooksOptions] = useState([]);
   const [selectedHookId, setSelectedHookId] = useState('');
   const [topic, setTopic] = useState(TOPICS[0]);
@@ -27,11 +27,11 @@ export function GenerateTab({ apiBase = '' }) {
     let cancelled = false;
     (async () => {
       try {
-        const data = await api.getHooks();
+        const data = await getHooks();
         if (cancelled) return;
         const list = Array.isArray(data?.hooks) ? data.hooks : [];
         setHooksOptions(list);
-        if (list.length && !selectedHookId) setSelectedHookId(String(list[0].id));
+        if (list.length) setSelectedHookId((prev) => prev || String(list[0].id));
         setLoadError(null);
       } catch (e) {
         if (!cancelled) setLoadError(e.message || String(e));
@@ -40,8 +40,7 @@ export function GenerateTab({ apiBase = '' }) {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [getHooks]);
 
   async function runGenerate() {
     if (!selectedHookId || generating) return;
@@ -54,7 +53,7 @@ export function GenerateTab({ apiBase = '' }) {
     setGenerateError(null);
     setVariations([]);
     try {
-      const data = await api.generate({
+      const data = await generate({
         hook_id: hookIdNum,
         topic,
         platform,

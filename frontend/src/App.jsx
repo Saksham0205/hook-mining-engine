@@ -30,7 +30,11 @@ export default function App({ apiBase = '' }) {
       .catch(() => {
         if (!cancelled) {
           setBackendOk(false);
-          setHealthHint('Disconnected — start backend on :8000');
+          setHealthHint(
+            prefix
+              ? 'Disconnected — check Render service, CORS, and VITE_API_BASE_URL'
+              : 'Disconnected — start backend on :8000',
+          );
         }
       });
     return () => {

@@ -27,6 +27,26 @@ logging.basicConfig(level=logging.INFO)
 _scheduler: WeeklyScheduler | None = None
 
 
+def _cors_origins() -> list[str]:
+    raw = (os.getenv("CORS_ORIGINS") or "").strip()
+    if raw:
+        return [o.strip() for o in raw.split(",") if o.strip()]
+    return ["http://localhost:5173"]
+
+
+def _cors_middleware_kwargs() -> dict:
+    kw: dict = {
+        "allow_origins": _cors_origins(),
+        "allow_credentials": True,
+        "allow_methods": ["*"],
+        "allow_headers": ["*"],
+    }
+    rx = (os.getenv("CORS_ORIGIN_REGEX") or "").strip()
+    if rx:
+        kw["allow_origin_regex"] = rx
+    return kw
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _scheduler
@@ -49,13 +69,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Pixii Hook Mining Engine", lifespan=lifespan)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, **_cors_middleware_kwargs())
 
 app.include_router(crawl_router.router, prefix="/api")
 app.include_router(hooks_router.router, prefix="/api")
