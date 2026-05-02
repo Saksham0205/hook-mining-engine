@@ -60,3 +60,7 @@ class GenerateResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str
     hooks_count: int
+
+
+class PingResponse(BaseModel):
+    status: str = "ok"

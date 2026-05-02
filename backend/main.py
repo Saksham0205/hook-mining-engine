@@ -17,7 +17,7 @@ from routers import crawl as crawl_router
 from routers import generate as generate_router
 from routers import hooks as hooks_router
 from scheduler import WeeklyScheduler
-from schemas import HealthResponse
+from schemas import HealthResponse, PingResponse
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
@@ -62,6 +62,12 @@ app.include_router(hooks_router.router, prefix="/api")
 app.include_router(generate_router.router, prefix="/api")
 
 
+@app.get("/api/ping", response_model=PingResponse)
+async def ping():
+    """No database access — stable for uptime monitors / keep-alive cron jobs."""
+    return PingResponse()
+
+
 @app.get("/api/health", response_model=HealthResponse)
 async def health(db: AsyncSession = Depends(get_db)):
     try:
@@ -75,4 +81,9 @@ async def health(db: AsyncSession = Depends(get_db)):
 
 @app.get("/")
 async def root():
-    return {"service": "hook-mining-engine", "docs": "/docs"}
+    return {
+        "service": "hook-mining-engine",
+        "docs": "/docs",
+        "keepalive_ping": "/api/ping",
+        "health_with_db": "/api/health",
+    }
