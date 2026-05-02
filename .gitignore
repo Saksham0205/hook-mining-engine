@@ -57,4 +57,3 @@ npm-debug.log*
 *.swo
 .DS_Store
 Thumbs.db
-.env.example
